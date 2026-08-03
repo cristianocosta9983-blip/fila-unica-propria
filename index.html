@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fila Única Municipal — Propriá/SE</title>
+const SUPABASE_URL = 'https://zttiqgfektqhyhpkmoix.supabase.co/rest/v1/';
+   const SUPABASE_ANON_KEY = 'sb_publishable_DZ2g2f3gvi7e1FkCpm66KA_VYLpKy3n'; src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --bg: #F5F4EF;
+    --surface: #FFFFFF;
+    --surface-2: #FBFAF7;
+    --ink: #1E2A2E;
+    --ink-soft: #52625F;
+    --line: #DDD9CE;
+    --primary: #145048;
+    --primary-dark: #0C332D;
+    --primary-soft: #E4EEEC;
+    --gold: #B8862E;
+    --gold-soft: #F6EEDD;
+    --red: #B23A2E;
+    --red-soft: #F7E4E0;
+    --purple: #6B4C8A;
+    --purple-soft: #EDE6F3;
+    --pink: #A5406E;
+    --pink-soft: #F5E2EB;
+    --blue: #2B5F8A;
+    --blue-soft: #E1EBF3;
+    --teal: #2C7A73;
+    --teal-soft: #E1F0EE;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(20,32,29,0.06), 0 4px 16px rgba(20,32,29,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1180px;margin:0 auto;padding:20px 20px 60px;}
+
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 22px;background:var(--primary-dark);color:#fff;
+    border-radius:var(--radius);margin-bottom:18px;
+    box-shadow:var(--shadow);flex-wrap:wrap;gap:10px;
+  }
+  header.top .brand{display:flex;align-items:center;gap:12px;}
+  header.top .crest{
+    width:38px;height:38px;border-radius:8px;background:var(--gold);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);
+    font-size:15px;
+  }
+  header.top h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.2px;}
+  header.top p{margin:2px 0 0;font-size:12px;color:#CFE0DB;}
+  .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .sync-pill{
+    font-size:11px;color:#CFE0DB;background:rgba(255,255,255,0.08);
+    padding:6px 10px;border-radius:20px;display:flex;align-items:center;gap:6px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:#5FC79A;}
+  .dot.saving{background:var(--gold);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .user-pill{
+    display:none;align-items:center;gap:8px;font-size:12px;color:#CFE0DB;
+    background:rgba(255,255,255,0.08);padding:5px 6px 5px 12px;border-radius:20px;
+  }
+  .user-pill button{
+    border:1px solid rgba(255,255,255,0.35);background:transparent;color:#fff;
+    padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;
+  }
+  .user-pill button:hover{background:rgba(255,255,255,0.12);}
+
+  nav.tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  nav.tabs button{
+    border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;
+    transition:all .15s;
+  }
+  nav.tabs button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  nav.tabs button:hover:not(.active){border-color:var(--primary);color:var(--primary);}
+  nav.tabs .count{
+    display:inline-block;margin-left:6px;background:rgba(0,0,0,0.08);
+    padding:1px 7px;border-radius:10px;font-size:11px;
+  }
+  nav.tabs button.active .count{background:rgba(255,255,255,0.22);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);margin-bottom:16px;
+  }
+  .card h2{font-size:15px;margin:0 0 4px;color:var(--primary-dark);}
+  .card .sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;}
+
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;}
+  .g-3{grid-column:span 3;} .g-4{grid-column:span 4;} .g-6{grid-column:span 6;}
+  .g-8{grid-column:span 8;} .g-12{grid-column:span 12;} .g-2{grid-column:span 2;}
+  @media(max-width:760px){ .grid [class^="g-"]{grid-column:span 12;} }
+
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  label .req{color:var(--red);}
+  input[type=text], input[type=tel], input[type=date], input[type=email], input[type=password], select, textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;
+    font-size:13.5px;font-family:inherit;background:var(--surface-2);color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--primary);outline-offset:1px;background:#fff;}
+  textarea{resize:vertical;min-height:60px;}
+  .field{margin-bottom:2px;}
+
+  .cpf-row{display:flex;gap:8px;align-items:flex-end;}
+  .cpf-row .field{flex:1;}
+  .btn{
+    border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;white-space:nowrap;
+  }
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);}
+  .btn-ghost:hover{border-color:var(--primary);color:var(--primary);}
+  .btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
+  .btn-danger:hover{background:var(--red-soft);}
+  .btn-sm{padding:5px 10px;font-size:11.5px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .found-banner{
+    display:none;align-items:center;gap:8px;background:var(--teal-soft);color:var(--teal);
+    padding:8px 12px;border-radius:7px;font-size:12.5px;margin:8px 0 4px;font-weight:600;
+  }
+  .found-banner.show{display:flex;}
+
+  .checks{display:flex;flex-wrap:wrap;gap:8px;}
+  .chk{
+    display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:20px;
+    padding:6px 12px;font-size:12px;cursor:pointer;background:var(--surface-2);color:var(--ink-soft);
+  }
+  .chk input{margin:0;}
+  .chk.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark);font-weight:600;}
+
+  .form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .toolbar input, .toolbar select{width:auto;}
+  .toolbar .search{flex:1;min-width:180px;}
+  .toolbar .stat{
+    font-size:12px;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);
+    padding:8px 12px;border-radius:7px;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:12.8px;}
+  thead th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--ink-soft);padding:8px 10px;border-bottom:2px solid var(--line);
+  }
+  tbody td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:hover{background:var(--surface-2);}
+  .pos{
+    display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+    border-radius:50%;background:var(--primary-soft);color:var(--primary-dark);font-weight:700;font-size:11px;
+  }
+  .badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .b-normal{background:var(--primary-soft);color:var(--primary-dark);}
+  .b-prioritario{background:var(--gold-soft);color:var(--gold);}
+  .b-urgente{background:var(--red-soft);color:var(--red);}
+  .b-gestante{background:var(--pink-soft);color:var(--pink);}
+  .b-oncologico{background:var(--purple-soft);color:var(--purple);}
+  .b-idoso{background:var(--blue-soft);color:var(--blue);}
+  .b-tea{background:var(--teal-soft);color:var(--teal);}
+  .badges-cell{display:flex;flex-wrap:wrap;gap:4px;max-width:180px;}
+
+  select.status-select{
+    font-size:11.5px;padding:5px 8px;border-radius:6px;font-weight:600;border:1px solid var(--line);
+  }
+  .st-pendente{background:var(--gold-soft);color:var(--gold);border-color:transparent;}
+  .st-agendado{background:var(--blue-soft);color:var(--blue);border-color:transparent;}
+  .st-concluido{background:var(--primary-soft);color:var(--primary-dark);border-color:transparent;}
+  .st-cancelado{background:var(--red-soft);color:var(--red);border-color:transparent;}
+
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{
+    border:1px solid var(--line);background:var(--surface);border-radius:6px;width:26px;height:26px;
+    cursor:pointer;font-size:12px;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{border-color:var(--primary);color:var(--primary);}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--ink-soft);}
+  .empty .big{font-size:32px;margin-bottom:6px;}
+
+  .patients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+  .p-card{
+    border:1px solid var(--line);border-radius:9px;padding:14px;background:var(--surface-2);cursor:pointer;
+    transition:border-color .15s;
+  }
+  .p-card:hover{border-color:var(--primary);}
+  .p-card .name{font-weight:700;font-size:13.5px;color:var(--primary-dark);margin-bottom:2px;}
+  .p-card .meta{font-size:11.5px;color:var(--ink-soft);line-height:1.6;}
+  .p-card .n-marc{
+    display:inline-block;margin-top:8px;font-size:11px;font-weight:700;color:var(--primary);
+    background:var(--primary-soft);padding:2px 8px;border-radius:10px;
+  }
+
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(20,32,29,0.45);z-index:50;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;
+    padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal h3{margin:0 0 4px;color:var(--primary-dark);font-size:17px;}
+  .modal .close-x{
+    float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-soft);
+  }
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;font-size:12.8px;}
+  .detail-grid .k{color:var(--ink-soft);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;}
+  .detail-grid .v{margin-top:2px;}
+  .detail-grid .full{grid-column:1/-1;}
+
+  .toast{
+    position:fixed;bottom:20px;right:20px;background:var(--primary-dark);color:#fff;
+    padding:12px 18px;border-radius:8px;font-size:13px;box-shadow:var(--shadow);z-index:60;
+    opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  ::placeholder{color:#A8A296;}
+
+  /* ============ LOGIN ============ */
+  .login-overlay{
+    display:none;position:fixed;inset:0;background:var(--bg);z-index:100;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .login-overlay.show{display:flex;}
+  .login-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:28px;max-width:380px;width:100%;
+  }
+  .login-brand{display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+  .login-brand h1{font-size:15px;margin:0;color:var(--primary-dark);}
+  .login-brand p{font-size:11.5px;margin:2px 0 0;color:var(--ink-soft);}
+  .login-error{display:none;color:var(--red);font-size:12px;margin-top:10px;background:var(--red-soft);padding:8px 10px;border-radius:7px;}
+
+  /* ============ RELATÓRIOS ============ */
+  .report-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:14px 0 20px;}
+  .rcard{border:1px solid var(--line);border-radius:9px;padding:14px;background:var(--surface-2);text-align:center;}
+  .rcard .num{font-size:24px;font-weight:800;color:var(--primary-dark);}
+  .rcard .lbl{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.3px;margin-top:4px;}
+  .section-sub-title{font-size:12.5px;font-weight:700;color:var(--primary-dark);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.3px;}
+</style>
+</head>
+<body>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="crest" style="background:var(--gold);width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary-dark);font-size:15px;">SUS</div>
+      <div>
+        <h1>Fila Única Municipal</h1>
+        <p>Secretaria Municipal de Saúde — Propriá/SE</p>
+      </div>
+    </div>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="loginEmail" placeholder="seuemail@propria.se.gov.br">
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label>Senha</label>
+      <input type="password" id="loginSenha" placeholder="Sua senha">
+    </div>
+    <button class="btn btn-primary" id="btnLogin" style="width:100%;margin-top:16px;">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+    <p style="font-size:11px;color:var(--ink-soft);margin-top:14px;text-align:center;">
+      Acesso restrito à equipe de Regulação. Em caso de dúvida sobre seu acesso, procure o administrador do sistema.
+    </p>
+  </div>
+</div>
+
+<div class="app" style="display:none;">
+
+  <header class="top">
+    <div class="brand">
+      <div class="crest">SUS</div>
+      <div>
+        <h1>Fila Única Municipal</h1>
+        <p>Secretaria Municipal de Saúde — Propriá/SE</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sync-pill"><span class="dot" id="syncDot"></span><span id="syncText">Dados salvos</span></div>
+      <div class="user-pill" id="userPill">
+        <span id="userName"></span>
+        <button id="btnLogout">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-tab="nova">Nova Marcação</button>
+    <button data-tab="fila">Fila de Espera <span class="count" id="countFila">0</span></button>
+    <button data-tab="pacientes">Pacientes <span class="count" id="countPac">0</span></button>
+    <button data-tab="relatorios">Relatórios</button>
+  </nav>
+
+  <!-- ================= NOVA MARCAÇÃO ================= -->
+  <section class="panel active" id="panel-nova">
+    <div class="card">
+      <h2>Identificação do paciente</h2>
+      <p class="sub">Digite o CPF e clique em Buscar — se o paciente já tiver cadastro, os dados são preenchidos automaticamente.</p>
+      <div class="cpf-row">
+        <div class="field">
+          <label>CPF <span class="req">*</span></label>
+          <input type="text" id="f_cpf" placeholder="000.000.000-00" maxlength="14">
+        </div>
+        <button class="btn btn-ghost" id="btnBuscarCpf">Buscar</button>
+      </div>
+      <div class="found-banner" id="foundBanner">✓ Paciente já cadastrado — dados preenchidos automaticamente.</div>
+
+      <div class="grid" style="margin-top:14px;">
+        <div class="g-6 field"><label>Nome completo <span class="req">*</span></label>
+          <input type="text" id="f_nome" placeholder="Nome completo do paciente"></div>
+        <div class="g-3 field"><label>Data de nascimento <span class="req">*</span></label>
+          <input type="date" id="f_nasc"></div>
+        <div class="g-3 field"><label>Telefone/WhatsApp <span class="req">*</span></label>
+          <input type="tel" id="f_tel" placeholder="(79) 90000-0000"></div>
+        <div class="g-6 field"><label>Unidade/Origem <span class="req">*</span></label>
+          <select id="f_unidade"></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Dados da solicitação</h2>
+      <p class="sub">Cada solicitação gera uma marcação independente na fila. Se o paciente tiver mais de um pedido, registre um formulário para cada um.</p>
+      <div class="grid">
+        <div class="g-4 field"><label>Tipo da solicitação <span class="req">*</span></label>
+          <select id="f_tipo"></select></div>
+        <div class="g-4 field"><label>Solicitação (especialidade/exame) <span class="req">*</span></label>
+          <select id="f_solicitacao"></select></div>
+        <div class="g-4 field"><label>Data do encaminhamento <span class="req">*</span></label>
+          <input type="date" id="f_dataenc"></div>
+
+        <div class="g-12 field"><label>Descreva o exame ou procedimento</label>
+          <input type="text" id="f_descricao" placeholder="Ex.: exames laboratoriais solicitados, tipo de ultrassonografia, etc."></div>
+
+        <div class="g-4 field"><label>CID-10 <span class="req">*</span></label>
+          <input type="text" id="f_cid" placeholder="Ex.: H25.9"></div>
+        <div class="g-8 field"><label>Motivo clínico da solicitação</label>
+          <input type="text" id="f_motivo" placeholder="Breve justificativa clínica"></div>
+
+        <div class="g-12 field"><label>Profissional solicitante <span class="req">*</span></label>
+          <select id="f_profissional"></select></div>
+        <div class="g-12 field" id="outroProfWrap" style="display:none;"><label>Caso tenha marcado "Outro", descreva:</label>
+          <input type="text" id="f_profissionalOutro" placeholder="Nome do profissional"></div>
+
+        <div class="g-12 field">
+          <label>Prioridades adicionais <span class="req">*</span></label>
+          <div class="checks" id="prioridadesChecks"></div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="btnLimpar">Limpar formulário</button>
+        <button class="btn btn-primary" id="btnSalvar">Registrar marcação</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FILA DE ESPERA ================= -->
+  <section class="panel" id="panel-fila">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" class="search" id="filaSearch" placeholder="Buscar por nome, CPF ou CID-10...">
+        <select id="filaStatus">
+          <option value="">Todos os status</option>
+          <option value="pendente">Pendente</option>
+          <option value="agendado">Agendado</option>
+          <option value="concluido">Concluído</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <select id="filaUnidade"><option value="">Todas as unidades</option></select>
+        <select id="filaTipo"><option value="">Todos os tipos</option></select>
+        <span class="stat" id="filaStat">0 marcações</span>
+        <button class="btn btn-ghost btn-sm" id="btnExportExcel">⬇ Baixar Excel</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Paciente</th><th>Unidade</th><th>Solicitação</th>
+              <th>Prioridades</th><th>Incluído em</th><th>Encaminhado em</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="filaBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="filaEmpty" style="display:none;">
+        <div class="big">📋</div>
+        Nenhuma marcação encontrada com os filtros atuais.
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PACIENTES ================= -->
+  <section class="panel" id="panel-pacientes">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" class="search" id="pacSearch" placeholder="Buscar paciente por nome ou CPF...">
+        <span class="stat" id="pacStat">0 pacientes cadastrados</span>
+      </div>
+      <div class="patients-grid" id="pacGrid"></div>
+      <div class="empty" id="pacEmpty" style="display:none;">
+        <div class="big">🧑‍⚕️</div>
+        Nenhum paciente cadastrado ainda. Registre a primeira marcação para começar.
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RELATÓRIOS ================= -->
+  <section class="panel" id="panel-relatorios">
+    <div class="card">
+      <h2>Relatórios</h2>
+      <p class="sub">Gere relatórios da fila por período, unidade ou status, e exporte os resultados em CSV, Excel ou PDF.</p>
+      <div class="grid">
+        <div class="g-3 field"><label>Data inicial (encaminhamento)</label><input type="date" id="repDataIni"></div>
+        <div class="g-3 field"><label>Data final (encaminhamento)</label><input type="date" id="repDataFim"></div>
+        <div class="g-3 field"><label>Unidade</label><select id="repUnidade"><option value="">Todas as unidades</option></select></div>
+        <div class="g-3 field"><label>Status</label>
+          <select id="repStatus">
+            <option value="">Todos os status</option>
+            <option value="pendente">Pendente</option>
+            <option value="agendado">Agendado</option>
+            <option value="concluido">Concluído</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions" style="justify-content:flex-start;">
+        <button class="btn btn-primary btn-sm" id="btnGerarRelatorio">Gerar relatório</button>
+        <button class="btn btn-ghost btn-sm" id="btnRepLimpar">Limpar filtros</button>
+      </div>
+    </div>
+
+    <div class="card" id="repResultado" style="display:none;">
+      <h2>Resumo do período</h2>
+      <div class="report-cards" id="repCards"></div>
+
+      <div class="section-sub-title">Por unidade</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Unidade</th><th>Total</th><th>Pendente</th><th>Agendado</th><th>Concluído</th><th>Cancelado</th></tr></thead>
+          <tbody id="repUnidadeBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section-sub-title">Marcações no período (<span id="repCount">0</span>)</div>
+      <div class="toolbar">
+        <button class="btn btn-ghost btn-sm" id="btnRepExportCsv">⬇ Exportar CSV</button>
+        <button class="btn btn-ghost btn-sm" id="btnRepExportExcel">⬇ Exportar Excel</button>
+        <button class="btn btn-ghost btn-sm" id="btnRepExportPdf">🖨 Exportar PDF</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Paciente</th><th>Unidade</th><th>Solicitação</th><th>Prioridades</th><th>Encaminhado em</th><th>Status</th></tr></thead>
+          <tbody id="repDetalheBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ======================================================================
+   CONFIGURAÇÃO DO SUPABASE
+   Substitua pelos dados do seu projeto (Project Settings > API no painel
+   do Supabase). A anon key é pública por natureza — a segurança real vem
+   das políticas de Row Level Security configuradas no banco (ver schema.sql).
+   ====================================================================== */
+const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co';
+const SUPABASE_ANON_KEY = 'SUA-CHAVE-ANON-PUBLICA-AQUI';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ======================= DADOS FIXOS DO FORMULÁRIO ======================= */
+const UNIDADES = [
+  "UBS Marcia Dantas","Secretaria Municipal de Saude","Centro de Especialidades Médicas",
+  "UBS Violeta Gusmão","UBS Ciro Tavares","UBS Vera Feitosa","UBS José Renato",
+  "UBS Manoel Viturino","UBS Jose Soares","UBS Euclides Rito","UBS Elmir Borges"
+];
+const TIPOS = ["Consulta especializada","Exames","Terapia/Reabilitação","Retorno"];
+const SOLICITACOES = [
+  "Laboratório","Ultrassonografia","Mamografia","Cardiologia","Cirurgia Vascular",
+  "Clínico Geral","Dermatologia","Endocrinologia","Fonoaudiologia","Fisioterapia",
+  "Ginecologia","Nutrição","Oftalmologia","Ortopedia","Otorrinolaringologia",
+  "Pediatria","Psicologia","Psiquiatria","Urologia","Outro Exame",
+  "Outra Consulta Especializada","MAPA","RAIO-X","ECG"
+];
+const PROFISSIONAIS = [
+  "ISABELLA CHRISTINA BEUTHNER ARAUJO","BRUNO HENRIQUE VIEIRA PITUBA","KAMILLA HENRIQUE MOREIRA",
+  "MARJORIE LEITE DA SILVA","ALINE DE JESUS LIMA","MANOEL LUCAS PINHEIRO NETO",
+  "EVANGELIA ESTHER MUSTELIER KINDELAN","WILLIAN NOVAIS DOS SANTOS SILVA",
+  "AMALIA GABRIELA OLIVEIRA ROLIN TAVARES","NATALYA AYUMI SIMAS SHIMIZU",
+  "KAIO CESAR DANTAS DA SILVA","JULIO CESAR DE OLIVEIRA LEAL","BRENO LUCIO FEITOSA DE MELO",
+  "VICTOR CURY MENEZES","ANDREWS OLIVEIRA DUYPRATH DE ANDRADE","HELOYSA FERNANDES SILVA",
+  "CINDI GUIMARAES MARINHO COUTINHO","GEORGIA SAMILLA PEREIRA BARBOSA","SILVIA ALICE FALCAO DOS ANJOS",
+  "GILDO LIMA SOUZA NETO","VICTOR HUGO ARANIBAR SELEME","MARCELA DE SA GOUVEIA","RICARDO SOUZA MELO",
+  "RUTE DE OLIVEIRA FARIAS BORGES","LUANA RYTHOLZ CASTRO","ISRAEL RENON DE LIRA DA SILVA",
+  "EDUARDO MACHADO TELES DE OLIVEIRA","JORGE LUIZ RAMOS SILVA FILHO","RONALDO VIEIRA MOURA DO NASCIMENTO",
+  "LENIMARX SOARES COSTA","LUANA MARIA GOMES DA SILVA","MARCUS VINICIUS PRADO GUERREIRO FILHO",
+  "FRANCISCO PAULO ANTUNES CARVALHO","JOAO FLAVIO FONTES ALMEIDA","Outro"
+];
+const PRIORIDADES = [
+  {v:"normal", l:"Normal", cls:"b-normal"},
+  {v:"prioritario", l:"Prioritário", cls:"b-prioritario"},
+  {v:"urgente", l:"Urgente", cls:"b-urgente"},
+  {v:"gestante", l:"Gestante", cls:"b-gestante"},
+  {v:"oncologico", l:"Oncológico", cls:"b-oncologico"},
+  {v:"idoso", l:"Idoso (60+)", cls:"b-idoso"},
+  {v:"tea", l:"Pessoa com TEA", cls:"b-tea"}
+];
+
+/* ======================= ESTADO ======================= */
+let pacientes = {};   // cpf -> {cpf,nome,nasc,tel,unidade}
+let marcacoes = {};   // id -> {...}
+let realtimeChannel = null;
+
+/* ======================= AUTENTICAÇÃO ======================= */
+async function verificarSessao(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session){ await onLoginSuccess(session); }
+  else{ mostrarLogin(); }
+}
+function mostrarLogin(){
+  document.getElementById('loginOverlay').classList.add('show');
+  document.querySelector('.app').style.display='none';
+}
+async function onLoginSuccess(session){
+  document.getElementById('loginOverlay').classList.remove('show');
+  document.querySelector('.app').style.display='';
+  let nomeExibicao = session.user.email;
+  try{
+    const { data:perfil } = await sb.from('perfis').select('nome_completo').eq('id', session.user.id).maybeSingle();
+    if(perfil && perfil.nome_completo) nomeExibicao = perfil.nome_completo;
+  }catch(e){ /* tabela perfis é opcional — segue usando o e-mail */ }
+  document.getElementById('userName').textContent = nomeExibicao;
+  document.getElementById('userPill').style.display='flex';
+  await carregarDados();
+  configurarRealtime();
+}
+async function fazerLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display='none';
+  if(!email || !senha){ errEl.textContent='Informe e-mail e senha.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('btnLogin');
+  btn.disabled=true; btn.textContent='Entrando...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+  btn.disabled=false; btn.textContent='Entrar';
+  if(error){ errEl.textContent='E-mail ou senha inválidos.'; errEl.style.display='block'; return; }
+  await onLoginSuccess(data.session);
+}
+document.getElementById('btnLogin').addEventListener('click', fazerLogin);
+document.getElementById('loginSenha').addEventListener('keydown', e=>{ if(e.key==='Enter') fazerLogin(); });
+document.getElementById('loginEmail').addEventListener('keydown', e=>{ if(e.key==='Enter') fazerLogin(); });
+document.getElementById('btnLogout').addEventListener('click', async ()=>{
+  if(realtimeChannel){ sb.removeChannel(realtimeChannel); realtimeChannel=null; }
+  await sb.auth.signOut();
+  location.reload();
+});
+
+/* ======================= MAPEAMENTO BANCO <-> APP ======================= */
+function rowToPaciente(r){
+  return { cpf:r.cpf, nome:r.nome, nasc:r.nasc, tel:r.tel, unidade:r.unidade };
+}
+function rowToMarcacao(r){
+  return {
+    id:r.id, cpf:r.cpf, nome:r.nome, unidade:r.unidade, tipo:r.tipo, solicitacao:r.solicitacao,
+    descricao:r.descricao, cid:r.cid, motivo:r.motivo, profissional:r.profissional,
+    prioridades:r.prioridades||[], dataEncaminhamento:r.data_encaminhamento,
+    status:r.status, dataCriacao:r.criado_em
+  };
+}
+
+/* ======================= PERSISTÊNCIA (SUPABASE) ======================= */
+async function carregarDados(){
+  try{
+    const { data, error } = await sb.from('pacientes').select('*');
+    if(error) throw error;
+    pacientes = {};
+    (data||[]).forEach(r=> pacientes[r.cpf]=rowToPaciente(r));
+  }catch(e){ showToast('Erro ao carregar pacientes: '+e.message); pacientes={}; }
+  try{
+    const { data, error } = await sb.from('marcacoes').select('*').order('criado_em',{ascending:true});
+    if(error) throw error;
+    marcacoes = {};
+    (data||[]).forEach(r=> marcacoes[r.id]=rowToMarcacao(r));
+  }catch(e){ showToast('Erro ao carregar marcações: '+e.message); marcacoes={}; }
+  renderAll();
+}
+
+function configurarRealtime(){
+  realtimeChannel = sb.channel('fila-mudancas')
+    .on('postgres_changes', { event:'*', schema:'public', table:'marcacoes' }, payload=>{
+      if(payload.eventType==='DELETE'){ delete marcacoes[payload.old.id]; }
+      else{ marcacoes[payload.new.id] = rowToMarcacao(payload.new); }
+      renderAll();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'pacientes' }, payload=>{
+      if(payload.eventType==='DELETE'){ delete pacientes[payload.old.cpf]; }
+      else{ pacientes[payload.new.cpf] = rowToPaciente(payload.new); }
+      renderPacientes();
+    })
+    .subscribe();
+}
+
+let saveTimer=null;
+function marcarSalvando(){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  dot.classList.add('saving'); txt.textContent='Salvando...';
+}
+function marcarSalvo(){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  dot.classList.remove('saving'); txt.textContent='Dados salvos';
+}
+
+/* ======================= UTIL ======================= */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+function onlyDigits(s){return (s||'').replace(/\D/g,'');}
+function formatCpf(v){
+  v=onlyDigits(v).slice(0,11);
+  if(v.length>9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
+  if(v.length>6) return v.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+  if(v.length>3) return v.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+  return v;
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function fmtDateTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  if(isNaN(d)) return '—';
+  return d.toLocaleDateString('pt-BR')+' às '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ======================= POPULA SELECTS ESTÁTICOS ======================= */
+function fillSelect(sel, arr, placeholder){
+  sel.innerHTML = (placeholder?`<option value="">${placeholder}</option>`:'') +
+    arr.map(o=>`<option value="${o}">${o}</option>`).join('');
+}
+fillSelect(document.getElementById('f_unidade'), UNIDADES, 'Selecione a unidade');
+fillSelect(document.getElementById('f_tipo'), TIPOS, 'Selecione o tipo');
+fillSelect(document.getElementById('f_solicitacao'), SOLICITACOES, 'Selecione especialidade/exame');
+fillSelect(document.getElementById('f_profissional'), PROFISSIONAIS, 'Selecione o profissional');
+fillSelect(document.getElementById('filaUnidade'), UNIDADES);
+document.getElementById('filaUnidade').insertAdjacentHTML('afterbegin','<option value="">Todas as unidades</option>');
+fillSelect(document.getElementById('filaTipo'), TIPOS);
+document.getElementById('filaTipo').insertAdjacentHTML('afterbegin','<option value="">Todos os tipos</option>');
+fillSelect(document.getElementById('repUnidade'), UNIDADES);
+document.getElementById('repUnidade').insertAdjacentHTML('afterbegin','<option value="">Todas as unidades</option>');
+
+const prioWrap = document.getElementById('prioridadesChecks');
+prioWrap.innerHTML = PRIORIDADES.map(p=>`
+  <label class="chk" data-v="${p.v}">
+    <input type="checkbox" value="${p.v}"> ${p.l}
+  </label>`).join('');
+prioWrap.querySelectorAll('.chk').forEach(chk=>{
+  chk.addEventListener('click', e=>{
+    const input = chk.querySelector('input');
+    setTimeout(()=>chk.classList.toggle('on', input.checked),0);
+  });
+});
+
+document.getElementById('f_profissional').addEventListener('change', e=>{
+  document.getElementById('outroProfWrap').style.display = e.target.value==='Outro' ? 'block':'none';
+});
+document.getElementById('f_cpf').addEventListener('input', e=>{
+  e.target.value = formatCpf(e.target.value);
+  document.getElementById('foundBanner').classList.remove('show');
+});
+
+/* ======================= TABS ======================= */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ======================= BUSCAR PACIENTE POR CPF ======================= */
+document.getElementById('btnBuscarCpf').addEventListener('click', ()=>{
+  const cpf = onlyDigits(document.getElementById('f_cpf').value);
+  const banner = document.getElementById('foundBanner');
+  if(!cpf || cpf.length<11){ showToast('Digite um CPF completo para buscar.'); return; }
+  const p = pacientes[cpf];
+  if(p){
+    document.getElementById('f_nome').value = p.nome||'';
+    document.getElementById('f_nasc').value = p.nasc||'';
+    document.getElementById('f_tel').value = p.tel||'';
+    document.getElementById('f_unidade').value = p.unidade||'';
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+    showToast('Nenhum cadastro encontrado para este CPF. Preencha os dados para um novo cadastro.');
+  }
+});
+
+/* ======================= LIMPAR / SALVAR FORM ======================= */
+function limparForm(){
+  ['f_cpf','f_nome','f_nasc','f_tel','f_descricao','f_cid','f_motivo','f_profissionalOutro','f_dataenc']
+    .forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_unidade').value='';
+  document.getElementById('f_tipo').value='';
+  document.getElementById('f_solicitacao').value='';
+  document.getElementById('f_profissional').value='';
+  document.getElementById('outroProfWrap').style.display='none';
+  document.getElementById('foundBanner').classList.remove('show');
+  prioWrap.querySelectorAll('input').forEach(i=>i.checked=false);
+  prioWrap.querySelectorAll('.chk').forEach(c=>c.classList.remove('on'));
+}
+document.getElementById('btnLimpar').addEventListener('click', limparForm);
+
+document.getElementById('btnSalvar').addEventListener('click', async ()=>{
+  const cpf = onlyDigits(document.getElementById('f_cpf').value);
+  const nome = document.getElementById('f_nome').value.trim();
+  const nasc = document.getElementById('f_nasc').value;
+  const tel = document.getElementById('f_tel').value.trim();
+  const unidade = document.getElementById('f_unidade').value;
+  const tipo = document.getElementById('f_tipo').value;
+  const solicitacao = document.getElementById('f_solicitacao').value;
+  const dataenc = document.getElementById('f_dataenc').value;
+  const cid = document.getElementById('f_cid').value.trim();
+  const profissional = document.getElementById('f_profissional').value;
+  const profissionalOutro = document.getElementById('f_profissionalOutro').value.trim();
+  const descricao = document.getElementById('f_descricao').value.trim();
+  const motivo = document.getElementById('f_motivo').value.trim();
+  const prioridades = Array.from(prioWrap.querySelectorAll('input:checked')).map(i=>i.value);
+
+  const faltando=[];
+  if(cpf.length<11) faltando.push('CPF');
+  if(!nome) faltando.push('Nome completo');
+  if(!nasc) faltando.push('Data de nascimento');
+  if(!tel) faltando.push('Telefone/WhatsApp');
+  if(!unidade) faltando.push('Unidade/Origem');
+  if(!tipo) faltando.push('Tipo da solicitação');
+  if(!solicitacao) faltando.push('Solicitação');
+  if(!dataenc) faltando.push('Data do encaminhamento');
+  if(!cid) faltando.push('CID-10');
+  if(!profissional) faltando.push('Profissional solicitante');
+  if(!prioridades.length) faltando.push('Prioridades adicionais');
+  if(faltando.length){
+    showToast('Preencha: '+faltando.join(', '));
+    return;
+  }
+
+  const btnSalvar = document.getElementById('btnSalvar');
+  btnSalvar.disabled = true;
+  marcarSalvando();
+
+  // grava/atualiza cadastro do paciente (upsert por CPF — nunca perde dados já existentes)
+  const { data:pRow, error:pErr } = await sb.from('pacientes')
+    .upsert({ cpf, nome, nasc, tel, unidade }, { onConflict:'cpf' })
+    .select().single();
+  if(pErr){ marcarSalvo(); btnSalvar.disabled=false; showToast('Erro ao salvar paciente: '+pErr.message); return; }
+  pacientes[cpf] = rowToPaciente(pRow);
+
+  const profissionalFinal = profissional==='Outro' ? (profissionalOutro||'Outro (não especificado)') : profissional;
+  const { data:mRow, error:mErr } = await sb.from('marcacoes').insert({
+    cpf, nome, unidade, tipo, solicitacao, descricao, cid, motivo,
+    profissional: profissionalFinal, prioridades,
+    data_encaminhamento: dataenc, status:'pendente'
+  }).select().single();
+  marcarSalvo();
+  btnSalvar.disabled = false;
+  if(mErr){ showToast('Erro ao registrar marcação: '+mErr.message); return; }
+  marcacoes[mRow.id] = rowToMarcacao(mRow);
+
+  showToast('Marcação registrada com sucesso.');
+  limparForm();
+  renderAll();
+});
+
+/* ======================= RENDER: FILA ======================= */
+function prioridadeBadges(list){
+  return (list||[]).map(v=>{
+    const p = PRIORIDADES.find(x=>x.v===v);
+    return p ? `<span class="badge ${p.cls}">${p.l}</span>` : '';
+  }).join('');
+}
+function statusClass(s){
+  return {pendente:'st-pendente',agendado:'st-agendado',concluido:'st-concluido',cancelado:'st-cancelado'}[s]||'st-pendente';
+}
+function labelPrioridades(list){
+  return (list||[]).map(v=>{
+    const p = PRIORIDADES.find(x=>x.v===v);
+    return p ? p.l : v;
+  }).join(', ');
+}
+function labelStatus(s){
+  return {pendente:'Pendente',agendado:'Agendado',concluido:'Concluído',cancelado:'Cancelado'}[s]||s;
+}
+
+function getFilteredFila(){
+  const search = (document.getElementById('filaSearch').value||'').toLowerCase();
+  const stFilter = document.getElementById('filaStatus').value;
+  const unFilter = document.getElementById('filaUnidade').value;
+  const tpFilter = document.getElementById('filaTipo').value;
+
+  let list = Object.values(marcacoes);
+  const weight = m => {
+    if(m.prioridades.includes('urgente')) return 0;
+    if(m.prioridades.includes('oncologico')) return 1;
+    if(m.prioridades.includes('gestante')) return 2;
+    if(m.prioridades.includes('idoso')||m.prioridades.includes('tea')) return 3;
+    if(m.prioridades.includes('prioritario')) return 4;
+    return 5;
+  };
+  list.sort((a,b)=> weight(a)-weight(b) || new Date(a.dataEncaminhamento)-new Date(b.dataEncaminhamento));
+
+  return list.filter(m=>{
+    if(stFilter && m.status!==stFilter) return false;
+    if(unFilter && m.unidade!==unFilter) return false;
+    if(tpFilter && m.tipo!==tpFilter) return false;
+    if(search){
+      const hay = (m.nome+' '+m.cpf+' '+m.cid+' '+m.solicitacao).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderFila(){
+  const filtered = getFilteredFila();
+  const body = document.getElementById('filaBody');
+  document.getElementById('filaStat').textContent = filtered.length+' marcação(ões)';
+  document.getElementById('countFila').textContent = Object.keys(marcacoes).length;
+
+  if(!filtered.length){
+    body.innerHTML='';
+    document.getElementById('filaEmpty').style.display='block';
+    return;
+  }
+  document.getElementById('filaEmpty').style.display='none';
+
+  body.innerHTML = filtered.map((m,i)=>`
+    <tr>
+      <td><span class="pos">${i+1}</span></td>
+      <td>
+        <div style="font-weight:600;">${m.nome}</div>
+        <div style="font-size:11px;color:var(--ink-soft);">${formatCpf(m.cpf)}</div>
+      </td>
+      <td style="font-size:11.5px;">${m.unidade}</td>
+      <td>
+        <div style="font-weight:600;">${m.solicitacao}</div>
+        <div style="font-size:11px;color:var(--ink-soft);">${m.tipo}</div>
+      </td>
+      <td><div class="badges-cell">${prioridadeBadges(m.prioridades)}</div></td>
+      <td style="font-size:11.5px;">${fmtDateTime(m.dataCriacao)}</td>
+      <td style="font-size:11.5px;">${fmtDate(m.dataEncaminhamento)}</td>
+      <td>
+        <select class="status-select ${statusClass(m.status)}" data-id="${m.id}">
+          <option value="pendente" ${m.status==='pendente'?'selected':''}>Pendente</option>
+          <option value="agendado" ${m.status==='agendado'?'selected':''}>Agendado</option>
+          <option value="concluido" ${m.status==='concluido'?'selected':''}>Concluído</option>
+          <option value="cancelado" ${m.status==='cancelado'?'selected':''}>Cancelado</option>
+        </select>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" title="Comprovante" data-receipt="${m.id}">🧾</button>
+          <button class="icon-btn" title="Detalhes" data-view="${m.id}">👁</button>
+          <button class="icon-btn" title="Excluir" data-del="${m.id}">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  body.querySelectorAll('.status-select').forEach(sel=>{
+    sel.addEventListener('change', async e=>{
+      const id = e.target.dataset.id;
+      const novoStatus = e.target.value;
+      marcarSalvando();
+      const { error } = await sb.from('marcacoes').update({ status: novoStatus }).eq('id', id);
+      marcarSalvo();
+      if(error){ showToast('Erro ao atualizar status: '+error.message); e.target.value = marcacoes[id].status; return; }
+      marcacoes[id].status = novoStatus;
+      sel.className = 'status-select '+statusClass(novoStatus);
+      showToast('Status atualizado.');
+    });
+  });
+  body.querySelectorAll('[data-receipt]').forEach(b=>{
+    b.addEventListener('click', ()=>emitirComprovante(b.dataset.receipt));
+  });
+  body.querySelectorAll('[data-view]').forEach(b=>{
+    b.addEventListener('click', ()=>abrirDetalhes(b.dataset.view));
+  });
+  body.querySelectorAll('[data-del]').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      if(confirm('Excluir esta marcação da fila? Esta ação não pode ser desfeita.')){
+        marcarSalvando();
+        const { error } = await sb.from('marcacoes').delete().eq('id', b.dataset.del);
+        marcarSalvo();
+        if(error){ showToast('Erro ao excluir: '+error.message); return; }
+        delete marcacoes[b.dataset.del];
+        renderAll();
+        showToast('Marcação excluída.');
+      }
+    });
+  });
+}
+
+function abrirDetalhes(id){
+  const m = marcacoes[id];
+  if(!m) return;
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <button class="close-x" id="closeModal">✕</button>
+    <h3>${m.nome}</h3>
+    <div style="font-size:12px;color:var(--ink-soft);">${formatCpf(m.cpf)} — ${m.unidade}</div>
+    <div class="detail-grid">
+      <div><div class="k">Tipo</div><div class="v">${m.tipo}</div></div>
+      <div><div class="k">Solicitação</div><div class="v">${m.solicitacao}</div></div>
+      <div class="full"><div class="k">Descrição</div><div class="v">${m.descricao||'—'}</div></div>
+      <div><div class="k">CID-10</div><div class="v">${m.cid}</div></div>
+      <div><div class="k">Profissional solicitante</div><div class="v">${m.profissional}</div></div>
+      <div class="full"><div class="k">Motivo clínico</div><div class="v">${m.motivo||'—'}</div></div>
+      <div><div class="k">Data do encaminhamento</div><div class="v">${fmtDate(m.dataEncaminhamento)}</div></div>
+      <div><div class="k">Incluído na lista de espera em</div><div class="v">${fmtDateTime(m.dataCriacao)}</div></div>
+      <div><div class="k">Status</div><div class="v">${labelStatus(m.status)}</div></div>
+      <div class="full"><div class="k">Prioridades</div><div class="v badges-cell" style="display:flex;">${prioridadeBadges(m.prioridades)}</div></div>
+    </div>
+    <div class="form-actions" style="border-top:1px solid var(--line);margin-top:16px;padding-top:14px;justify-content:flex-start;">
+      <button class="btn btn-primary btn-sm" id="btnComprovanteModal">🧾 Emitir comprovante</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('closeModal').addEventListener('click', fecharModal);
+  document.getElementById('btnComprovanteModal').addEventListener('click', ()=>emitirComprovante(id));
+}
+function fecharModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+document.getElementById('modalOverlay').addEventListener('click', e=>{
+  if(e.target.id==='modalOverlay') fecharModal();
+});
+
+/* ======================= COMPROVANTE DE AGENDAMENTO ======================= */
+function emitirComprovante(id){
+  const m = marcacoes[id];
+  if(!m) return;
+  const p = pacientes[m.cpf] || {};
+  const protocolo = String(m.id).slice(0,8).toUpperCase();
+  const emissao = new Date().toLocaleString('pt-BR');
+
+  const html = `
+  <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Comprovante — ${m.nome}</title>
+  <style>
+    *{box-sizing:border-box;}
+    body{font-family:"Segoe UI", Arial, sans-serif;color:#1E2A2E;padding:36px;max-width:720px;margin:0 auto;}
+    .head{text-align:center;border-bottom:3px solid #145048;padding-bottom:14px;margin-bottom:20px;}
+    .head h1{font-size:15px;margin:0;color:#0C332D;letter-spacing:.3px;}
+    .head h2{font-size:13px;margin:4px 0 0;color:#52625F;font-weight:600;}
+    .head h3{font-size:16px;margin:14px 0 0;color:#145048;}
+    .protocolo{text-align:center;font-size:12px;color:#52625F;margin-bottom:22px;}
+    .protocolo b{color:#145048;letter-spacing:.5px;}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+    td{padding:7px 4px;font-size:12.5px;border-bottom:1px solid #E4E1D6;vertical-align:top;}
+    td.k{width:220px;font-weight:700;color:#52625F;font-size:11px;text-transform:uppercase;letter-spacing:.3px;}
+    .section-title{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+      color:#145048;margin:20px 0 8px;border-bottom:1px solid #145048;padding-bottom:4px;}
+    .badge{display:inline-block;background:#E4EEEC;color:#145048;font-size:11px;font-weight:700;
+      padding:3px 9px;border-radius:20px;margin:2px 4px 2px 0;}
+    .status-box{
+      margin-top:20px;padding:14px;border:1px dashed #145048;border-radius:8px;
+      background:#FBFAF7;font-size:12.5px;text-align:center;color:#0C332D;font-weight:600;
+    }
+    .assinatura{margin-top:56px;display:flex;justify-content:space-between;gap:40px;}
+    .linha{border-top:1px solid #1E2A2E;padding-top:6px;font-size:11px;text-align:center;color:#52625F;flex:1;}
+    .rodape{margin-top:30px;font-size:10.5px;color:#8A857A;text-align:center;line-height:1.5;}
+    .print-bar{text-align:center;margin-bottom:24px;}
+    .print-bar button{
+      background:#145048;color:#fff;border:none;padding:9px 20px;border-radius:7px;
+      font-size:13px;font-weight:600;cursor:pointer;
+    }
+    @media print{ .print-bar{display:none;} body{padding:0;} }
+  </style></head>
+  <body>
+    <div class="print-bar"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
+
+    <div class="head">
+      <h1>PREFEITURA MUNICIPAL DE PROPRIÁ/SE</h1>
+      <h2>Secretaria Municipal de Saúde — Equipe de Regulação em Saúde</h2>
+      <h3>Comprovante de Agendamento / Inclusão na Lista de Espera</h3>
+    </div>
+    <div class="protocolo">Protocolo nº <b>${protocolo}</b></div>
+
+    <div class="section-title">Dados do paciente</div>
+    <table>
+      <tr><td class="k">Nome completo</td><td>${m.nome}</td></tr>
+      <tr><td class="k">CPF</td><td>${formatCpf(m.cpf)}</td></tr>
+      <tr><td class="k">Data de nascimento</td><td>${fmtDate(p.nasc)}</td></tr>
+      <tr><td class="k">Telefone/WhatsApp</td><td>${p.tel||'—'}</td></tr>
+      <tr><td class="k">Unidade/Origem</td><td>${m.unidade}</td></tr>
+    </table>
+
+    <div class="section-title">Dados da solicitação</div>
+    <table>
+      <tr><td class="k">Tipo da solicitação</td><td>${m.tipo}</td></tr>
+      <tr><td class="k">Solicitação</td><td>${m.solicitacao}</td></tr>
+      <tr><td class="k">Descrição</td><td>${m.descricao||'—'}</td></tr>
+      <tr><td class="k">CID-10</td><td>${m.cid}</td></tr>
+      <tr><td class="k">Motivo clínico</td><td>${m.motivo||'—'}</td></tr>
+      <tr><td class="k">Profissional solicitante</td><td>${m.profissional}</td></tr>
+      <tr><td class="k">Prioridades</td><td>${(m.prioridades||[]).map(v=>{
+          const pr=PRIORIDADES.find(x=>x.v===v); return pr?`<span class="badge">${pr.l}</span>`:'';
+        }).join('')}</td></tr>
+    </table>
+
+    <div class="section-title">Datas</div>
+    <table>
+      <tr><td class="k">Data do encaminhamento</td><td>${fmtDate(m.dataEncaminhamento)}</td></tr>
+      <tr><td class="k">Incluído na lista de espera em</td><td>${fmtDateTime(m.dataCriacao)}</td></tr>
+      <tr><td class="k">Comprovante emitido em</td><td>${emissao}</td></tr>
+    </table>
+
+    <div class="status-box">
+      Situação atual: ${labelStatus(m.status).toUpperCase()}<br>
+      <span style="font-weight:400;font-size:11.5px;">
+        Este comprovante confirma a inclusão do paciente na lista de espera municipal.
+        A confirmação de data e horário do atendimento será comunicada oportunamente pela unidade de saúde.
+      </span>
+    </div>
+
+    <div class="assinatura">
+      <div class="linha">Assinatura do responsável pela Regulação</div>
+      <div class="linha">Assinatura/ciência do paciente ou responsável</div>
+    </div>
+
+    <div class="rodape">
+      Secretaria Municipal de Saúde de Propriá/SE — Sistema de Fila Única Municipal<br>
+      Documento gerado eletronicamente em ${emissao}
+    </div>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  if(!win){ showToast('Permita pop-ups no navegador para emitir o comprovante.'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+}
+
+['filaSearch','filaStatus','filaUnidade','filaTipo'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', renderFila);
+  document.getElementById(id).addEventListener('change', renderFila);
+});
+
+/* ======================= EXPORTAR EXCEL (FILA) ======================= */
+document.getElementById('btnExportExcel').addEventListener('click', ()=>{
+  const filtered = getFilteredFila();
+  if(!filtered.length){ showToast('Não há marcações para exportar com os filtros atuais.'); return; }
+
+  const linhas = filtered.map((m,i)=>({
+    'Posição na fila': i+1,
+    'Paciente': m.nome,
+    'CPF': formatCpf(m.cpf),
+    'Data de nascimento': fmtDate(pacientes[m.cpf]?.nasc),
+    'Telefone/WhatsApp': pacientes[m.cpf]?.tel || '',
+    'Unidade/Origem': m.unidade,
+    'Tipo da solicitação': m.tipo,
+    'Solicitação': m.solicitacao,
+    'Descrição do exame/procedimento': m.descricao || '',
+    'CID-10': m.cid,
+    'Motivo clínico': m.motivo || '',
+    'Prioridades': labelPrioridades(m.prioridades),
+    'Profissional solicitante': m.profissional,
+    'Data de inclusão na lista de espera': fmtDateTime(m.dataCriacao),
+    'Data do encaminhamento': fmtDate(m.dataEncaminhamento),
+    'Status': labelStatus(m.status)
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  ws['!cols'] = [
+    {wch:6},{wch:28},{wch:16},{wch:14},{wch:16},{wch:24},{wch:20},{wch:22},
+    {wch:30},{wch:10},{wch:28},{wch:22},{wch:26},{wch:22},{wch:16},{wch:12}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Fila de Espera');
+
+  const hoje = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `fila_espera_${hoje}.xlsx`);
+  showToast('Planilha Excel baixada com sucesso.');
+});
+
+/* ======================= RENDER: PACIENTES ======================= */
+function renderPacientes(){
+  const search = (document.getElementById('pacSearch').value||'').toLowerCase();
+  const list = Object.values(pacientes).filter(p=>{
+    if(!search) return true;
+    return (p.nome+' '+p.cpf).toLowerCase().includes(search);
+  }).sort((a,b)=>a.nome.localeCompare(b.nome));
+
+  document.getElementById('pacStat').textContent = Object.keys(pacientes).length+' pacientes cadastrados';
+  document.getElementById('countPac').textContent = Object.keys(pacientes).length;
+
+  const grid = document.getElementById('pacGrid');
+  if(!list.length){
+    grid.innerHTML='';
+    document.getElementById('pacEmpty').style.display='block';
+    return;
+  }
+  document.getElementById('pacEmpty').style.display='none';
+
+  grid.innerHTML = list.map(p=>{
+    const nMarc = Object.values(marcacoes).filter(m=>m.cpf===p.cpf).length;
+    return `
+    <div class="p-card" data-cpf="${p.cpf}">
+      <div class="name">${p.nome}</div>
+      <div class="meta">
+        CPF: ${formatCpf(p.cpf)}<br>
+        Nasc.: ${fmtDate(p.nasc)} · Tel.: ${p.tel||'—'}<br>
+        ${p.unidade}
+      </div>
+      <span class="n-marc">${nMarc} marcação(ões)</span>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.p-card').forEach(card=>{
+    card.addEventListener('click', ()=>abrirPaciente(card.dataset.cpf));
+  });
+}
+document.getElementById('pacSearch').addEventListener('input', renderPacientes);
+
+function abrirPaciente(cpf){
+  const p = pacientes[cpf];
+  if(!p) return;
+  const hist = Object.values(marcacoes).filter(m=>m.cpf===cpf)
+    .sort((a,b)=>new Date(b.dataEncaminhamento)-new Date(a.dataEncaminhamento));
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <button class="close-x" id="closeModal">✕</button>
+    <h3>${p.nome}</h3>
+    <div style="font-size:12px;color:var(--ink-soft);">${formatCpf(p.cpf)} · Nasc. ${fmtDate(p.nasc)} · ${p.tel||'sem telefone'} · ${p.unidade}</div>
+    <div style="margin-top:16px;">
+      <div class="k" style="font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;margin-bottom:8px;">Histórico de marcações (${hist.length})</div>
+      ${hist.length ? hist.map(m=>`
+        <div style="border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:12.8px;">${m.solicitacao}</strong>
+            <span class="badge" style="background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line);">${labelStatus(m.status)}</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--ink-soft);margin-top:3px;">${m.tipo} · CID-10 ${m.cid} · encaminhado em ${fmtDate(m.dataEncaminhamento)}</div>
+          <div class="badges-cell" style="margin-top:6px;">${prioridadeBadges(m.prioridades)}</div>
+        </div>
+      `).join('') : '<div style="color:var(--ink-soft);font-size:12.5px;">Nenhuma marcação registrada ainda.</div>'}
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('closeModal').addEventListener('click', fecharModal);
+}
+
+/* ======================= RELATÓRIOS ======================= */
+let repFiltradas = [];
+
+function gerarRelatorio(){
+  const ini = document.getElementById('repDataIni').value;
+  const fim = document.getElementById('repDataFim').value;
+  const unidade = document.getElementById('repUnidade').value;
+  const status = document.getElementById('repStatus').value;
+
+  repFiltradas = Object.values(marcacoes).filter(m=>{
+    if(ini && m.dataEncaminhamento < ini) return false;
+    if(fim && m.dataEncaminhamento > fim) return false;
+    if(unidade && m.unidade!==unidade) return false;
+    if(status && m.status!==status) return false;
+    return true;
+  }).sort((a,b)=> new Date(a.dataEncaminhamento)-new Date(b.dataEncaminhamento));
+
+  const cards = [
+    { l:'Total no período', v:repFiltradas.length },
+    { l:'Pendentes', v:repFiltradas.filter(m=>m.status==='pendente').length },
+    { l:'Agendados', v:repFiltradas.filter(m=>m.status==='agendado').length },
+    { l:'Concluídos', v:repFiltradas.filter(m=>m.status==='concluido').length },
+    { l:'Cancelados', v:repFiltradas.filter(m=>m.status==='cancelado').length }
+  ];
+  document.getElementById('repCards').innerHTML = cards.map(c=>`
+    <div class="rcard"><div class="num">${c.v}</div><div class="lbl">${c.l}</div></div>
+  `).join('');
+
+  const porUnidade = {};
+  repFiltradas.forEach(m=>{
+    if(!porUnidade[m.unidade]) porUnidade[m.unidade]={total:0,pendente:0,agendado:0,concluido:0,cancelado:0};
+    porUnidade[m.unidade].total++;
+    porUnidade[m.unidade][m.status] = (porUnidade[m.unidade][m.status]||0)+1;
+  });
+  const linhasUnidade = Object.entries(porUnidade).sort((a,b)=>b[1].total-a[1].total);
+  document.getElementById('repUnidadeBody').innerHTML = linhasUnidade.length
+    ? linhasUnidade.map(([un,c])=>`<tr><td>${un}</td><td>${c.total}</td><td>${c.pendente||0}</td><td>${c.agendado||0}</td><td>${c.concluido||0}</td><td>${c.cancelado||0}</td></tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);">Nenhum registro no período.</td></tr>';
+
+  document.getElementById('repCount').textContent = repFiltradas.length;
+  document.getElementById('repDetalheBody').innerHTML = repFiltradas.length
+    ? repFiltradas.map(m=>`
+      <tr>
+        <td>${m.nome}<div style="font-size:11px;color:var(--ink-soft);">${formatCpf(m.cpf)}</div></td>
+        <td>${m.unidade}</td>
+        <td>${m.solicitacao}<div style="font-size:11px;color:var(--ink-soft);">${m.tipo}</div></td>
+        <td><div class="badges-cell">${prioridadeBadges(m.prioridades)}</div></td>
+        <td>${fmtDate(m.dataEncaminhamento)}</td>
+        <td><span class="badge" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink-soft);">${labelStatus(m.status)}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);">Nenhum registro encontrado.</td></tr>';
+
+  document.getElementById('repResultado').style.display='block';
+}
+document.getElementById('btnGerarRelatorio').addEventListener('click', gerarRelatorio);
+document.getElementById('btnRepLimpar').addEventListener('click', ()=>{
+  document.getElementById('repDataIni').value='';
+  document.getElementById('repDataFim').value='';
+  document.getElementById('repUnidade').value='';
+  document.getElementById('repStatus').value='';
+  document.getElementById('repResultado').style.display='none';
+  repFiltradas = [];
+});
+
+function baixarArquivo(conteudo, nomeArquivo, tipo){
+  const blob = new Blob([conteudo], {type:tipo});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=nomeArquivo;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function csvEscape(v){
+  const s = (v==null?'':String(v));
+  if(/[",;\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+document.getElementById('btnRepExportCsv').addEventListener('click', ()=>{
+  if(!repFiltradas.length){ showToast('Gere um relatório com resultados antes de exportar.'); return; }
+  const cabecalho = ['Paciente','CPF','Unidade','Tipo','Solicitação','CID-10','Prioridades','Encaminhado em','Status'];
+  const linhas = repFiltradas.map(m=>[
+    m.nome, formatCpf(m.cpf), m.unidade, m.tipo, m.solicitacao, m.cid,
+    labelPrioridades(m.prioridades), fmtDate(m.dataEncaminhamento), labelStatus(m.status)
+  ]);
+  const csv = [cabecalho, ...linhas].map(l=>l.map(csvEscape).join(';')).join('\r\n');
+  baixarArquivo('\uFEFF'+csv, `relatorio_fila_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8;');
+  showToast('CSV exportado com sucesso.');
+});
+document.getElementById('btnRepExportExcel').addEventListener('click', ()=>{
+  if(!repFiltradas.length){ showToast('Gere um relatório com resultados antes de exportar.'); return; }
+  const linhas = repFiltradas.map((m,i)=>({
+    '#':i+1,'Paciente':m.nome,'CPF':formatCpf(m.cpf),'Unidade':m.unidade,'Tipo':m.tipo,
+    'Solicitação':m.solicitacao,'CID-10':m.cid,'Prioridades':labelPrioridades(m.prioridades),
+    'Encaminhado em':fmtDate(m.dataEncaminhamento),'Status':labelStatus(m.status)
+  }));
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
+  XLSX.writeFile(wb, `relatorio_fila_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('Excel exportado com sucesso.');
+});
+document.getElementById('btnRepExportPdf').addEventListener('click', ()=>{
+  if(!repFiltradas.length){ showToast('Gere um relatório com resultados antes de exportar.'); return; }
+  const ini = document.getElementById('repDataIni').value;
+  const fim = document.getElementById('repDataFim').value;
+  const periodo = (ini||fim) ? `${ini?fmtDate(ini):'início'} a ${fim?fmtDate(fim):'hoje'}` : 'todos os registros';
+  const emissao = new Date().toLocaleString('pt-BR');
+
+  const linhasHtml = repFiltradas.map(m=>`
+    <tr>
+      <td>${m.nome}</td><td>${formatCpf(m.cpf)}</td><td>${m.unidade}</td>
+      <td>${m.solicitacao}</td><td>${labelPrioridades(m.prioridades)}</td>
+      <td>${fmtDate(m.dataEncaminhamento)}</td><td>${labelStatus(m.status)}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório da Fila</title>
+  <style>
+    *{box-sizing:border-box;} body{font-family:"Segoe UI",Arial,sans-serif;color:#1E2A2E;padding:32px;}
+    .head{text-align:center;border-bottom:3px solid #145048;padding-bottom:14px;margin-bottom:18px;}
+    .head h1{font-size:15px;margin:0;color:#0C332D;} .head h2{font-size:12.5px;margin:4px 0 0;color:#52625F;}
+    .head h3{font-size:15px;margin:12px 0 0;color:#145048;}
+    .info{font-size:11.5px;color:#52625F;text-align:center;margin-bottom:16px;}
+    table{width:100%;border-collapse:collapse;font-size:11px;} th{background:#F5F4EF;text-align:left;padding:6px;border-bottom:2px solid #DDD9CE;}
+    td{padding:6px;border-bottom:1px solid #E4E1D6;}
+    .print-bar{text-align:center;margin-bottom:20px;}
+    .print-bar button{background:#145048;color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;}
+    @media print{ .print-bar{display:none;} }
+  </style></head><body>
+    <div class="print-bar"><button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button></div>
+    <div class="head">
+      <h1>PREFEITURA MUNICIPAL DE PROPRIÁ/SE</h1>
+      <h2>Secretaria Municipal de Saúde — Equipe de Regulação em Saúde</h2>
+      <h3>Relatório da Fila Única — Período: ${periodo}</h3>
+    </div>
+    <div class="info">Emitido em ${emissao} · ${repFiltradas.length} registro(s)</div>
+    <table><thead><tr><th>Paciente</th><th>CPF</th><th>Unidade</th><th>Solicitação</th><th>Prioridades</th><th>Encaminhado em</th><th>Status</th></tr></thead>
+    <tbody>${linhasHtml}</tbody></table>
+  </body></html>`;
+  const win = window.open('', '_blank');
+  if(!win){ showToast('Permita pop-ups no navegador para gerar o relatório em PDF.'); return; }
+  win.document.open(); win.document.write(html); win.document.close();
+});
+
+/* ======================= INIT ======================= */
+function renderAll(){
+  renderFila();
+  renderPacientes();
+}
+verificarSessao();
+</script>
+</body>
+</html>
